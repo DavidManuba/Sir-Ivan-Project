@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .menu-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+        .menu-table th, .menu-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .menu-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .receipt {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            border: 2px solid #28a745;
+        }
+        .receipt h2 {
+            text-align: center;
+            color: #28a745;
+            margin-bottom: 25px;
+        }
+        .total-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+        }
+        .change {
+            font-size: 20px;
+            color: #dc3545;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .paid {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .timestamp {
+            text-align: center;
+            color: #666;
+            margin-top: 25px;
+            font-style: italic;
+        }
+        .back-btn {
+            background-color: #6c757d;
+            margin-top: 20px;
+        }
+        .back-btn:hover {
+            background-color: #545b62;
+        }
+    </style>
+</head>
+<body>
+    <!-- Order Form -->
+    <div class="container" id="orderForm">
+        <h1>Menu</h1>
+        
+        <table class="menu-table">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Burger</td>
+                    <td>50</td>
+                </tr>
+                <tr>
+                    <td>Fries</td>
+                    <td>75</td>
+                </tr>
+                <tr>
+                    <td>Steak</td>
+                    <td>150</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <form onsubmit="return calculateOrder()">
+            <div class="form-group">
+                <label for="orderSelect">Select an order</label>
+                <select id="orderSelect" required>
+                    <option value="">Choose an item...</option>
+                    <option value="50">Burger - 50</option>
+                    <option value="75">Fries - 75</option>
+                    <option value="150">Steak - 150</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+                <input type="number" id="quantity" min="1" value="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="cash">Cash</label>
+                <input type="number" id="cash" min="0" step="0.01" required>
+            </div>
+            
+            <button type="submit" class="btn">Submit</button>
+        </form>
+    </div>
+
+    <!-- Receipt -->
+    <div class="receipt" id="receipt">
+        <h2>RECEIPT</h2>
+        
+        <div class="total-price" id="totalPrice">
+            Total Price: 0
+        </div>
+        
+        <div class="paid" id="paidAmount">
+            You Paid: 0
+        </div>
+        
+        <div class="change" id="changeAmount">
+            CHANGE: 0
+        </div>
+        
+        <div class="timestamp" id="timestamp">
+            Loading date and time...
+        </div>
+
+        <button class="btn back-btn" onclick="goBack()">New Order</button>
+    </div>
+
+    <script>
+        // Menu items with prices
+        const menuItems = {
+            '50': 'Burger',
+            '75': 'Fries', 
+            '150': 'Steak'
+        };
+
+        function calculateOrder() {
+            // Get form values
+            const selectedPrice = document.getElementById('orderSelect').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const cash = parseFloat(document.getElementById('cash').value);
+            
+            // Calculate total price
+            const totalPrice = parseInt(selectedPrice) * quantity;
+            
+            // Check if cash is sufficient
+            if (cash < totalPrice) {
+                alert('Insufficient cash! Please provide enough money.');
+                return false;
+            }
+            
+            // Calculate change
+            const change = cash - totalPrice;
+            
+            // Get current date and time
+            const now = new Date();
+            const timestamp = now.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit' 
+            }) + ' ' + now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: true 
+            });
+            
+            // Display receipt
+            document.getElementById('totalPrice').textContent = `Total Price: ${totalPrice}`;
+            document.getElementById('paidAmount').textContent = `You Paid: ${cash}`;
+            document.getElementById('changeAmount').textContent = `CHANGE: ${change}`;
+            document.getElementById('timestamp').textContent = timestamp;
+            
+            // Show receipt and hide order form
+            document.getElementById('orderForm').style.display = 'none';
+            document.getElementById('receipt').style.display = 'block';
+            
+            return false; // Prevent form submission
+        }
+
+        function goBack() {
+            // Show order form and hide receipt
+            document.getElementById('orderForm').style.display = 'block';
+            document.getElementById('receipt').style.display = 'none';
+            
+            // Reset form
+            document.getElementById('orderSelect').value = '';
+            document.getElementById('quantity').value = '1';
+            document.getElementById('cash').value = '';
+        }
+
+        // Update quantity when order selection changes to show running total
+        document.getElementById('orderSelect').addEventListener('change', function() {
+            const price = this.value;
+            const quantity = document.getElementById('quantity').value;
+            if (price && quantity) {
+                const total = price * quantity;
+                // You could display this somewhere if needed
+            }
+        });
+
+        document.getElementById('quantity').addEventListener('input', function() {
+            const price = document.getElementById('orderSelect').value;
+            const quantity = this.value;
+            if (price && quantity) {
+                const total = price * quantity;
+                // You could display this somewhere if needed
+            }
+        });
+    </script>
+</body>
+</html>
